@@ -38,20 +38,23 @@ con la del release.
 ## Publicar una versión
 
 1. Sube `versionName` y `versionCode` en `app/build.gradle.kts`.
-2. Crea el tag: `git tag v0.2.0 && git push origin v0.2.0`.
+2. Crea el tag: `git tag v0.2.0 && git push origin v0.2.0` (o un release nuevo desde GitHub con ese tag).
 3. El workflow `release` compila, firma y publica el APK con su `checksums.txt`.
 
-Necesita estos secretos del repo (**Settings → Secrets and variables → Actions**):
+La llave de firma está en el repo **cifrada** (`signing/muvi-release.jks.enc`, AES-256 con PBKDF2).
+El workflow solo necesita un secreto (**Settings → Secrets and variables → Actions**):
 
 | Secreto | Valor |
 |---|---|
-| `MUVI_KEYSTORE_B64` | `base64 -w0 muvi-release.jks` |
-| `MUVI_KEYSTORE_PASSWORD` | contraseña del almacén |
-| `MUVI_KEY_ALIAS` | `muvi` |
-| `MUVI_KEY_PASSWORD` | contraseña de la llave |
+| `MUVI_SIGNING_KEY` | la contraseña de la llave (alias `muvi`) |
 
-Guarda el `.jks` en un lugar seguro: si se pierde, las versiones nuevas ya no se instalan encima
-(habría que desinstalar y volver a configurar).
+Guarda esa contraseña en tu gestor de contraseñas: sin ella las versiones nuevas ya no se instalan
+encima (habría que desinstalar y volver a configurar). Para sacar la llave en tu PC:
+
+```sh
+openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -md sha256 \
+  -in signing/muvi-release.jks.enc -out muvi-release.jks
+```
 
 ## Actualizar el SDK
 

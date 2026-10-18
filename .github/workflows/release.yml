@@ -1,12 +1,10 @@
-# Al subir un tag vX.Y.Z: compila el APK de release, lo firma con tu llave (secretos del repo) y
-# publica el release con el APK y su checksum.
+# Al crear un tag vX.Y.Z: compila el APK de release, lo firma con tu llave y publica el release con
+# el APK y su checksum.
 #
-# Secretos (Settings > Secrets and variables > Actions):
-#   MUVI_KEYSTORE_B64       el .jks en base64 (base64 -w0 muvi-release.jks)
-#   MUVI_KEYSTORE_PASSWORD  contrasena del almacen
-#   MUVI_KEY_ALIAS          alias de la llave (muvi)
-#   MUVI_KEY_PASSWORD       contrasena de la llave
-# Sin ellos se compila igual, pero el APK queda SIN FIRMAR como artefacto del run y no se publica.
+# La llave vive en el repo CIFRADA (signing/muvi-release.jks.enc, AES-256). Solo hace falta un secreto
+# (Settings > Secrets and variables > Actions):
+#   MUVI_SIGNING_KEY   la contrasena de la llave (descifra el archivo y abre el almacen)
+# Sin el secreto se compila igual, pero el APK queda SIN FIRMAR como artefacto del run y no se publica.
 name: release
 
 on:
@@ -45,22 +43,23 @@ jobs:
       - name: Llave de firma
         id: key
         env:
-          KS_B64: ${{ secrets.MUVI_KEYSTORE_B64 }}
+          MUVI_SIGNING_KEY: ${{ secrets.MUVI_SIGNING_KEY }}
         run: |
-          if [ -n "$KS_B64" ]; then
-            printf '%s' "$KS_B64" | base64 -d > "$RUNNER_TEMP/muvi.jks"
+          if [ -n "$MUVI_SIGNING_KEY" ]; then
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -md sha256 \
+              -in signing/muvi-release.jks.enc -out "$RUNNER_TEMP/muvi.jks" -pass env:MUVI_SIGNING_KEY
             echo "MUVI_KEYSTORE=$RUNNER_TEMP/muvi.jks" >> "$GITHUB_ENV"
             echo "signed=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::warning::faltan los secretos de firma: el APK queda sin firmar y no se publica"
+            echo "::warning::falta el secreto MUVI_SIGNING_KEY: el APK queda sin firmar y no se publica"
             echo "signed=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Compilar APK de release y pruebas
         env:
-          MUVI_KEYSTORE_PASSWORD: ${{ secrets.MUVI_KEYSTORE_PASSWORD }}
-          MUVI_KEY_ALIAS: ${{ secrets.MUVI_KEY_ALIAS }}
-          MUVI_KEY_PASSWORD: ${{ secrets.MUVI_KEY_PASSWORD }}
+          MUVI_KEYSTORE_PASSWORD: ${{ secrets.MUVI_SIGNING_KEY }}
+          MUVI_KEY_ALIAS: muvi
+          MUVI_KEY_PASSWORD: ${{ secrets.MUVI_SIGNING_KEY }}
         run: ./gradlew assembleRelease testDebugUnitTest --stacktrace
 
       - name: Revisar firma y preparar archivos
