@@ -1,4 +1,4 @@
-# Compila el APK de debug en cada push y PR. Queda como artefacto del run para instalarlo en el telefono.
+# Compila los APK en cada push y PR. El de debug queda como artefacto del run para instalarlo en el telefono.
 name: android
 
 on:
@@ -35,6 +35,16 @@ jobs:
 
       - name: Pruebas unitarias
         run: ./gradlew testDebugUnitTest
+
+      - name: Compilar APK de release (sin firmar; el workflow release lo firma)
+        run: ./gradlew assembleRelease
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: muvi-release-unsigned
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 7
 
       - uses: actions/upload-artifact@v4
         with:
