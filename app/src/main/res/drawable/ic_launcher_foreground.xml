@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pantalla con boton de play, dentro de la zona segura (66dp centrales) del icono adaptable -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="4.5"
+        android:fillColor="#00000000"
+        android:pathData="M38,35h32a7,7 0,0 1,7 7v22a7,7 0,0 1,-7 7h-32a7,7 0,0 1,-7 -7v-22a7,7 0,0 1,7 -7z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M48.5,44.5L48.5,61.5L62.5,53Z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M42,75h24a2.25,2.25 0,0 1,0 4.5h-24a2.25,2.25 0,0 1,0 -4.5z" />
+</vector>
